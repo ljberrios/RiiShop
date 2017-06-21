@@ -1,0 +1,82 @@
+plugins {
+    id "java"
+    id "maven"
+    id "eclipse"
+    id "idea"
+    id "com.github.johnrengelman.shadow" version "1.2.4"
+}
+
+group = 'uk.co.riifactions.shop'
+version = '1.0-SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.reflections:reflections:0.9.10'
+    compile 'com.google.inject:guice:4.0'
+    compileOnly 'org.projectlombok:lombok:latest.release'
+    compileOnly fileTree(dir: 'lib', include: ['*.jar'])
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    // Java 8 turns on doclint which we fail
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+jar {
+    classifier 'original'
+}
+
+shadowJar {
+    classifier ''
+    exclude 'GradleStart**'
+    exclude '.cache'
+    exclude 'LICENSE*'
+}
+
+task archivesZip(type:Zip) {
+    from ('lib/build')
+    from ('LICENSE.txt')
+    from ('README.md')
+    exclude ('*.zip')
+    exclude ('*.asc')
+
+    buildDir = file('lib/build')
+    destinationDir = file('lib/build')
+}
+
+artifacts {
+    archives shadowJar
+    archives sourcesJar
+    archives javadocJar
+    archives archivesZip.destinationDir
+}
+
+build.dependsOn(sourcesJar)
+build.dependsOn(javadocJar)
+build.dependsOn(archivesZip)
+archivesZip.dependsOn(shadowJar)
+archivesZip.dependsOn(sourcesJar)
+archivesZip.dependsOn(javadocJar)
+archivesZip.dependsOn(jar)

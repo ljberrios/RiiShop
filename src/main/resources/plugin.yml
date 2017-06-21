@@ -1,0 +1,11 @@
+name: RiiShop
+version: 1.0
+author: Thortex
+
+main: uk.co.riifactions.shop.ShopPlugin
+depend: [Vault]
+
+permissions:
+    shop.edit:
+        default: op
+        description: Access to the shop edit command.
